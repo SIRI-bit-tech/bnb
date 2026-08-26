@@ -101,7 +101,10 @@ class ApiClient {
           if (error.code === 'ECONNABORTED') {
             console.error('[API Error] Request timeout - backend not responding')
           }
-        } else if (status === 401 || status === 403) {
+        } else if (status === 403) {
+          // 403 Forbidden is a permission error (e.g. action restricted). Never log out or redirect on 403.
+          return Promise.reject(error)
+        } else if (status === 401) {
           // Try silent refresh once before forcing logout
           try {
             const cfg: any = error.config || {}

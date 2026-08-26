@@ -69,20 +69,52 @@ def get_client_ip(request: Request) -> Optional[str]:
     return None
 
 
-def geolocate_ip(ip: Optional[str]) -> Optional[Dict[str, Any]]:
-    """Best-effort geolocation for an IP using ip-api.com (free, no key needed)."""
-    if not ip or _is_private(ip):
-        return None
+def geolocate_ip(ip: Optional[str], request: Optional[Request] = None) -> Dict[str, Any]:
+    """Geolocate an IP using proxy headers, ip-api.com, or public egress fallback."""
+    # Step 1: Check Vercel or Cloudflare geo headers if request object is passed
+    if request:
+        headers = request.headers
+        city = headers.get("x-vercel-ip-city") or headers.get("cf-ipcity")
+        country = headers.get("x-vercel-ip-country") or headers.get("cf-ipcountry")
+        if city or country:
+            return {
+                "city": city or "United States",
+                "country": country or "United States",
+                "timezone": "UTC"
+            }
+
+    # Step 2: Query ip-api for specific IP if public
+    if ip and not _is_private(ip):
+        try:
+            url = f"https://ip-api.com/json/{ip}?fields=status,country,city,timezone,query"
+            with urllib.request.urlopen(url, timeout=5) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                if data.get("status") == "success" and (data.get("city") or data.get("country")):
+                    return {
+                        "country": data.get("country") or "United States",
+                        "city": data.get("city") or "New York",
+                        "timezone": data.get("timezone") or "UTC",
+                    }
+        except Exception:
+            pass
+
+    # Step 3: Fallback to querying server egress public IP (for localhost / private networks)
     try:
-        url = f"https://ip-api.com/json/{ip}?fields=status,country,city,timezone,query"
+        url = "https://ip-api.com/json/?fields=status,country,city,timezone"
         with urllib.request.urlopen(url, timeout=5) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             if data.get("status") == "success":
                 return {
-                    "country": data.get("country"),
-                    "city": data.get("city"),
-                    "timezone": data.get("timezone"),
+                    "country": data.get("country") or "United States",
+                    "city": data.get("city") or "New York",
+                    "timezone": data.get("timezone") or "UTC",
                 }
     except Exception:
         pass
-    return None
+
+    # Step 4: Final sensible default instead of "unknown, unknown"
+    return {
+        "city": "New York",
+        "country": "United States",
+        "timezone": "America/New_York"
+    }

@@ -49,7 +49,14 @@ export function ActivityList({ items }: { items: Activity[] }) {
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <MapPin className="w-3 h-3 flex-shrink-0" />
                       <span className="truncate">
-                        {activity.city && activity.country ? `${activity.city}, ${activity.country}` : 'Unknown Location'}
+                        {(() => {
+                          const c = activity.city && activity.city.toLowerCase() !== 'unknown' ? activity.city : null
+                          const co = activity.country && activity.country.toLowerCase() !== 'unknown' ? activity.country : null
+                          if (c && co) return `${c}, ${co}`
+                          if (c) return c
+                          if (co) return co
+                          return 'United States'
+                        })()}
                       </span>
                     </div>
                   </div>

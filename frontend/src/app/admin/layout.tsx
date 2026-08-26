@@ -7,11 +7,13 @@ import { AdminHeader } from '@/components/admin/admin-header'
 import { LoadingOverlay } from '@/components/ui/loading-overlay'
 import { RouteChangeLoader } from '@/components/ui/route-change-loader'
 import { LinkClickLoader } from '@/components/ui/link-click-loader'
+import { useAdminSessionKeeper } from '@/hooks/use-admin-session-keeper'
 import Script from 'next/script'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const sessionKeeperModal = useAdminSessionKeeper()
 
   // Do not set global Authorization header here; the API client attaches admin/user tokens per-request.
 
@@ -39,6 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <AdminHeader onOpenMobileMenu={() => setMobileOpen(true)} />
         <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
+      {sessionKeeperModal}
       <LoadingOverlay />
       <RouteChangeLoader />
       <LinkClickLoader />
