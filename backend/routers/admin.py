@@ -6,7 +6,7 @@ from datetime import datetime, timezone, timedelta
 import uuid
 import json
 
-from models.admin import AdminUser, AdminAuditLog
+from models.admin import AdminUser, AdminAuditLog, AdminRole, AdminPermission
 from models.support import SupportTicket, TicketMessage, LoginHistory
 from models.user import User
 from models.account import Account, AccountStatus
