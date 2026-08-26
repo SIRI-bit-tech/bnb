@@ -7,11 +7,11 @@
   /* Lock to light mode — prevents OS dark mode from auto-inverting the app */
   color-scheme: light;
 
-  /* User-defined colors - PRESERVED */
-  --primary: #0073CF;
-  --primary-dark: #003f7d;
-  --secondary: #009A44;
-  --accent: #00AEEF;
+  /* User-defined colors - Centralized Brand Theme */
+  --primary: #0A2540;
+  --primary-dark: #061324;
+  --secondary: #D4AF37;
+  --accent: #D4AF37;
   --success: #009A44;
   --warning: #F39C12;
   --error: #E74C3C;

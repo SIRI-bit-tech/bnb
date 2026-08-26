@@ -1,4 +1,4 @@
-﻿import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss'
 
 const config: Config = {
   content: ["./src/pages/**/*.{js,ts,jsx,tsx,mdx}", "./src/components/**/*.{js,ts,jsx,tsx,mdx}", "./src/app/**/*.{js,ts,jsx,tsx,mdx}", "*.{js,ts,jsx,tsx,mdx}"],
@@ -7,16 +7,16 @@ const config: Config = {
       colors: {
         // BNB Brand Colors
         primary: {
-          50: '#e8f4ff',
-          100: '#d1e9ff',
-          200: '#a2d3ff',
-          300: '#73bdff',
-          400: '#4ba8ff',
-          500: '#0073CF', // Primary Brand Color
-          600: '#0059a6',
-          700: '#003f7d',
-          800: '#002554',
-          900: '#000b2b',
+          50: '#f0f4f8',
+          100: '#d9e2ec',
+          200: '#bcccdc',
+          300: '#9fb3c8',
+          400: '#829ab1',
+          500: '#0A2540', // Deep Navy Brand Color (Concept 3)
+          600: '#081d33',
+          700: '#061626',
+          800: '#040e19',
+          900: '#02070c',
         },
         secondary: {
           50: '#eef9f3',
