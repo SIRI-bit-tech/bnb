@@ -1,3 +1,4 @@
+import { getAdminId } from '@/lib/auth-helpers'
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
@@ -61,11 +62,11 @@ export function AdminRestrictionDialog({
 
     try {
       setLoading(true)
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       const adminToken = localStorage.getItem('admin_token')
       
       if (!adminId || !adminToken) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
 

@@ -1,3 +1,4 @@
+import { getAdminId } from '@/lib/auth-helpers'
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -52,9 +53,9 @@ export function AdminEditUserDialog({
       try {
         setLoading(true)
         setError(null)
-        const adminId = localStorage.getItem('admin_id')
+        const adminId = getAdminId()
         if (!adminId) {
-          window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
           return
         }
         const qs = new URLSearchParams({ admin_id: adminId, user_id: userId })
@@ -78,9 +79,9 @@ export function AdminEditUserDialog({
     if (!form) return
     try {
       setLoading(true)
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       if (!adminId) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
       const qs = new URLSearchParams({ admin_id: adminId })

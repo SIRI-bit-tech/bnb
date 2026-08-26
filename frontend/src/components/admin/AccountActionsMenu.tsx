@@ -1,3 +1,4 @@
+import { getAdminId } from '@/lib/auth-helpers'
 'use client'
 
 import { useState } from 'react'
@@ -25,9 +26,9 @@ export function AccountActionsMenu({ account }: Props) {
 
   async function doStatusChange(next: 'active' | 'frozen' | 'closed') {
     try {
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       if (!adminId) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
       const qs = new URLSearchParams({ admin_id: adminId })
@@ -45,9 +46,9 @@ export function AccountActionsMenu({ account }: Props) {
     try {
       const num = parseFloat(amount)
       if (!Number.isFinite(num) || num <= 0) return
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       if (!adminId) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
       const qs = new URLSearchParams({ admin_id: adminId })
@@ -65,9 +66,9 @@ export function AccountActionsMenu({ account }: Props) {
   async function doUpdateWalletId() {
     try {
       if (!walletId.trim()) return
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       if (!adminId) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
       const qs = new URLSearchParams({ admin_id: adminId })

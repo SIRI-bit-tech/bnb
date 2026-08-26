@@ -1,3 +1,4 @@
+import { getAdminId } from '@/lib/auth-helpers'
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -31,11 +32,11 @@ export function AdminRestrictionStatus({ userId, userName }: RestrictionStatusPr
   const fetchRestrictions = async () => {
     try {
       setLoading(true)
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       const adminToken = localStorage.getItem('admin_token')
       
       if (!adminId || !adminToken) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
 
@@ -55,11 +56,11 @@ export function AdminRestrictionStatus({ userId, userName }: RestrictionStatusPr
 
   const handleRemoveRestriction = async (restrictionType: RestrictionType) => {
     try {
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       const adminToken = localStorage.getItem('admin_token')
       
       if (!adminId || !adminToken) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
 

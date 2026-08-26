@@ -1,3 +1,4 @@
+import { getAdminId } from '@/lib/auth-helpers'
 'use client'
 
 import { useEffect,useState } from 'react'
@@ -19,9 +20,9 @@ export default function AdminDashboard() {
 
   async function fetchOverview() {
     try {
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       if (!adminId) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
       const response = await apiClient.get<{ success: boolean; data: AdminDashboardOverviewResponse }>(
@@ -34,7 +35,7 @@ export default function AdminDashboard() {
         localStorage.removeItem('admin_token')
         localStorage.removeItem('admin_refresh_token')
         localStorage.removeItem('admin_id')
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
       }
     } finally {
       setLoading(false)

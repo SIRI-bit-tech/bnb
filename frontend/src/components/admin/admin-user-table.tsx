@@ -1,3 +1,4 @@
+import { getAdminId } from '@/lib/auth-helpers'
 'use client'
 
 import {
@@ -65,15 +66,15 @@ export function AdminUserTable({ items }: { items: AdminUserRow[] }) {
     const adminToken = localStorage.getItem('admin_token')
     if (!adminToken) {
       toast.error('Admin session expired. Please log in again.')
-      window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
       return
     }
     apiClient.setAuthToken(adminToken)
     
     try {
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       if (!adminId) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
       const qs = new URLSearchParams({ admin_id: adminId })
@@ -193,10 +194,10 @@ export function AdminUserTable({ items }: { items: AdminUserRow[] }) {
                               variant: 'default',
                               action: async () => {
                                 try {
-                                  const adminId = localStorage.getItem('admin_id')
+                                  const adminId = getAdminId()
                                   const adminToken = localStorage.getItem('admin_token')
                                   if (!adminId || !adminToken) {
-                                    window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
                                     return
                                   }
                                   apiClient.setAuthToken(adminToken)
@@ -240,9 +241,9 @@ export function AdminUserTable({ items }: { items: AdminUserRow[] }) {
                             variant: u.status === 'active' ? 'destructive' : 'default',
                             action: async () => {
                               try {
-                                const adminId = localStorage.getItem('admin_id')
+                                const adminId = getAdminId()
                                 if (!adminId) {
-                                  window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
                                   return
                                 }
                                 const qs = new URLSearchParams({ admin_id: adminId })
@@ -301,9 +302,9 @@ export function AdminUserTable({ items }: { items: AdminUserRow[] }) {
                             variant: 'destructive',
                             action: async () => {
                               try {
-                                const adminId = localStorage.getItem('admin_id')
+                                const adminId = getAdminId()
                                 if (!adminId) {
-                                  window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
                                   return
                                 }
                                 const qs = new URLSearchParams({ admin_id: adminId, user_id: u.id })

@@ -1,3 +1,4 @@
+import { getAdminId } from '@/lib/auth-helpers'
  'use client'
  
  import { useEffect, useState } from 'react'
@@ -26,9 +27,9 @@ import { useAdminRealtime } from '@/hooks/use-admin-realtime'
  
   async function fetchStats() {
     try {
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       if (!adminId) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
       const res = await apiClient.get<{ success: boolean; data: AdminStatistics }>(

@@ -1,3 +1,4 @@
+import { getAdminId } from '@/lib/auth-helpers'
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -25,9 +26,9 @@ export default function AdminCardsPage() {
 
   async function fetchCards() {
     try {
-      const adminId = localStorage.getItem('admin_id')
+      const adminId = getAdminId()
       if (!adminId) {
-        window.location.href = '/admin/auth/login'
+        console.warn('Admin action halted: admin_id missing')
         return
       }
       const qs = new URLSearchParams({ admin_id: adminId })
@@ -44,7 +45,7 @@ export default function AdminCardsPage() {
 
   async function setStatus(id: string, status: 'pending' | 'active') {
     try {
-      const adminId = localStorage.getItem('admin_id')!
+      const adminId = getAdminId()!
       const qs = new URLSearchParams({ admin_id: adminId })
       await apiClient.put(`/admin/cards/status?${qs.toString()}`, { card_id: id, status })
       fetchCards()
@@ -55,7 +56,7 @@ export default function AdminCardsPage() {
 
   async function freeze(id: string) {
     try {
-      const adminId = localStorage.getItem('admin_id')!
+      const adminId = getAdminId()!
       const qs = new URLSearchParams({ admin_id: adminId })
       await apiClient.post(`/admin/cards/freeze?${qs.toString()}`, { card_id: id })
       fetchCards()
@@ -66,7 +67,7 @@ export default function AdminCardsPage() {
 
   async function unfreeze(id: string) {
     try {
-      const adminId = localStorage.getItem('admin_id')!
+      const adminId = getAdminId()!
       const qs = new URLSearchParams({ admin_id: adminId })
       await apiClient.post(`/admin/cards/unfreeze?${qs.toString()}`, { card_id: id })
       fetchCards()
@@ -77,7 +78,7 @@ export default function AdminCardsPage() {
 
   async function block(id: string) {
     try {
-      const adminId = localStorage.getItem('admin_id')!
+      const adminId = getAdminId()!
       const qs = new URLSearchParams({ admin_id: adminId })
       await apiClient.post(`/admin/cards/block?${qs.toString()}`, { card_id: id })
       fetchCards()
