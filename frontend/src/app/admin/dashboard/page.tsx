@@ -1,5 +1,6 @@
-import { getAdminId } from '@/lib/auth-helpers'
 'use client'
+
+import { getAdminId } from '@/lib/auth-helpers'
 
 import { useEffect,useState } from 'react'
 import { apiClient } from '@/lib/api-client'

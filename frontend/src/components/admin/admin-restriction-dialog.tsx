@@ -1,3 +1,5 @@
+'use client'
+
 import { getAdminId } from '@/lib/auth-helpers'
 ﻿'use client'
 

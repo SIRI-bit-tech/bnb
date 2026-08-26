@@ -1,5 +1,6 @@
-import { getAdminId } from '@/lib/auth-helpers'
 'use client'
+
+import { getAdminId } from '@/lib/auth-helpers'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
