@@ -2,7 +2,7 @@
 
 A comprehensive, production-ready full-stack online banking platform built with Next.js 16 (Frontend) and FastAPI (Backend).
 
-## ðŸ“‹ Project Overview
+## 📋 Project Overview
 
 BNB Banking Platform is a secure, professional digital banking solution that enables users to:
 
@@ -37,7 +37,7 @@ Located in `/frontend` directory
 - **Real-time**: Ably client SDK
 - **API Client**: Axios for HTTP requests
 
-## ðŸš€ Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 - Python 3.9+
@@ -115,71 +115,71 @@ Located in `/frontend` directory
 ### Backend Structure
 ```
 backend/
-â”œâ”€â”€ main.py                 # FastAPI application entry point
-â”œâ”€â”€ config.py              # Configuration management
-â”œâ”€â”€ database.py            # Database connection and session
-â”œâ”€â”€ models/                # SQLAlchemy database models
-â”‚   â”œâ”€â”€ user.py           # User model
-â”‚   â”œâ”€â”€ account.py        # Account models
-â”‚   â”œâ”€â”€ transaction.py    # Transaction model
-â”‚   â”œâ”€â”€ transfer.py       # Transfer and beneficiary models
-â”‚   â”œâ”€â”€ loan.py           # Loan-related models
-â”‚   â”œâ”€â”€ notification.py   # Notification models
-â”‚   â”œâ”€â”€ document.py       # Document model
-â”‚   â”œâ”€â”€ support.py        # Support ticket and chat models
-â”‚   â””â”€â”€ bill_payment.py   # Bill payment models
-â”œâ”€â”€ routers/               # API route handlers
-â”‚   â”œâ”€â”€ auth.py           # Authentication endpoints
-â”‚   â”œâ”€â”€ accounts.py       # Account management endpoints
-â”‚   â”œâ”€â”€ transfers.py      # Transfer endpoints
-â”‚   â”œâ”€â”€ loans.py          # Loan endpoints
-â”‚   â”œâ”€â”€ notifications.py  # Notification endpoints
-â”‚   â”œâ”€â”€ support.py        # Support endpoints
-â”‚   â”œâ”€â”€ profile.py        # Profile endpoints
-â”‚   â”œâ”€â”€ documents.py      # Document endpoints
-â”‚   â””â”€â”€ bill_payments.py  # Bill payment endpoints
-â””â”€â”€ requirements.txt      # Python dependencies
+├── main.py                 # FastAPI application entry point
+├── config.py              # Configuration management
+├── database.py            # Database connection and session
+├── models/                # SQLAlchemy database models
+â”‚   ├── user.py           # User model
+â”‚   ├── account.py        # Account models
+â”‚   ├── transaction.py    # Transaction model
+â”‚   ├── transfer.py       # Transfer and beneficiary models
+â”‚   ├── loan.py           # Loan-related models
+â”‚   ├── notification.py   # Notification models
+â”‚   ├── document.py       # Document model
+â”‚   ├── support.py        # Support ticket and chat models
+â”‚   └── bill_payment.py   # Bill payment models
+├── routers/               # API route handlers
+â”‚   ├── auth.py           # Authentication endpoints
+â”‚   ├── accounts.py       # Account management endpoints
+â”‚   ├── transfers.py      # Transfer endpoints
+â”‚   ├── loans.py          # Loan endpoints
+â”‚   ├── notifications.py  # Notification endpoints
+â”‚   ├── support.py        # Support endpoints
+â”‚   ├── profile.py        # Profile endpoints
+â”‚   ├── documents.py      # Document endpoints
+â”‚   └── bill_payments.py  # Bill payment endpoints
+└── requirements.txt      # Python dependencies
 
 ```
 
 ### Frontend Structure
 ```
 frontend/
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ app/              # Next.js app directory
-â”‚   â”‚   â”œâ”€â”€ layout.tsx    # Root layout
-â”‚   â”‚   â”œâ”€â”€ page.tsx      # Home page
-â”‚   â”‚   â”œâ”€â”€ auth/         # Authentication pages
-â”‚   â”‚   â”‚   â”œâ”€â”€ login/
-â”‚   â”‚   â”‚   â”œâ”€â”€ register/
-â”‚   â”‚   â”‚   â””â”€â”€ layout.tsx
-â”‚   â”‚   â””â”€â”€ dashboard/    # Protected dashboard pages
-â”‚   â”‚       â”œâ”€â”€ page.tsx
-â”‚   â”‚       â”œâ”€â”€ accounts/
-â”‚   â”‚       â”œâ”€â”€ transfers/
-â”‚   â”‚       â”œâ”€â”€ loans/
-â”‚   â”‚       â”œâ”€â”€ bills/
-â”‚   â”‚       â”œâ”€â”€ profile/
-â”‚   â”‚       â”œâ”€â”€ support/
-â”‚   â”‚       â””â”€â”€ layout.tsx
-â”‚   â”œâ”€â”€ components/       # Reusable React components
-â”‚   â”œâ”€â”€ lib/             # Utility functions and helpers
-â”‚   â”‚   â”œâ”€â”€ api-client.ts      # Axios API client
-â”‚   â”‚   â”œâ”€â”€ store.ts           # Zustand stores
-â”‚   â”‚   â””â”€â”€ utils.ts           # Helper functions
-â”‚   â”œâ”€â”€ styles/          # Global CSS and Tailwind config
-â”‚   â”œâ”€â”€ types/           # TypeScript type definitions
-â”‚   â”œâ”€â”€ constants/       # Application constants
-â”‚   â””â”€â”€ hooks/           # Custom React hooks
-â”œâ”€â”€ public/              # Static assets
-â”œâ”€â”€ next.config.js       # Next.js configuration
-â”œâ”€â”€ tailwind.config.ts   # Tailwind CSS configuration
-â”œâ”€â”€ tsconfig.json        # TypeScript configuration
-â””â”€â”€ package.json         # Node.js dependencies
+├── src/
+â”‚   ├── app/              # Next.js app directory
+â”‚   â”‚   ├── layout.tsx    # Root layout
+â”‚   â”‚   ├── page.tsx      # Home page
+â”‚   â”‚   ├── auth/         # Authentication pages
+â”‚   â”‚   â”‚   ├── login/
+â”‚   â”‚   â”‚   ├── register/
+â”‚   â”‚   â”‚   └── layout.tsx
+â”‚   â”‚   └── dashboard/    # Protected dashboard pages
+â”‚   â”‚       ├── page.tsx
+â”‚   â”‚       ├── accounts/
+â”‚   â”‚       ├── transfers/
+â”‚   â”‚       ├── loans/
+â”‚   â”‚       ├── bills/
+â”‚   â”‚       ├── profile/
+â”‚   â”‚       ├── support/
+â”‚   â”‚       └── layout.tsx
+â”‚   ├── components/       # Reusable React components
+â”‚   ├── lib/             # Utility functions and helpers
+â”‚   â”‚   ├── api-client.ts      # Axios API client
+â”‚   â”‚   ├── store.ts           # Zustand stores
+â”‚   â”‚   └── utils.ts           # Helper functions
+â”‚   ├── styles/          # Global CSS and Tailwind config
+â”‚   ├── types/           # TypeScript type definitions
+â”‚   ├── constants/       # Application constants
+â”‚   └── hooks/           # Custom React hooks
+├── public/              # Static assets
+├── next.config.js       # Next.js configuration
+├── tailwind.config.ts   # Tailwind CSS configuration
+├── tsconfig.json        # TypeScript configuration
+└── package.json         # Node.js dependencies
 
 ```
 
-## ðŸ”Œ API Endpoints
+## 🔌 API Endpoints
 
 ### Authentication
 - `POST /api/v1/auth/register` - Register new user
@@ -379,26 +379,26 @@ For support, email support@broadmontnationalb.com or create a support ticket in 
 
 ## âœ¨ Features Summary
 
-âœ… Complete user authentication system
-âœ… Multi-account management (checking, savings, crypto)
-âœ… Real-time balance and transaction updates
-âœ… Internal, domestic, and international transfers
-âœ… Bill payment and recurring payments
-âœ… Loan application and management system
-âœ… Real-time notifications via Ably
-âœ… Document upload and management via Cloudinary
-âœ… Live chat with customer support
-âœ… Support tickets system
-âœ… Multi-currency support (15+ currencies)
-âœ… User tier system (Standard, Priority, Premium)
-âœ… Device authorization and login history
-âœ… Dark mode and responsive design
-âœ… Production-ready API with validation
-âœ… Comprehensive error handling
-âœ… Rate limiting and security middleware
-âœ… Audit logging for all transactions
-âœ… Session management with Redis
-âœ… 128-bit SSL/TLS encryption
+✅ Complete user authentication system
+✅ Multi-account management (checking, savings, crypto)
+✅ Real-time balance and transaction updates
+✅ Internal, domestic, and international transfers
+✅ Bill payment and recurring payments
+✅ Loan application and management system
+✅ Real-time notifications via Ably
+✅ Document upload and management via Cloudinary
+✅ Live chat with customer support
+✅ Support tickets system
+✅ Multi-currency support (15+ currencies)
+✅ User tier system (Standard, Priority, Premium)
+✅ Device authorization and login history
+✅ Dark mode and responsive design
+✅ Production-ready API with validation
+✅ Comprehensive error handling
+✅ Rate limiting and security middleware
+✅ Audit logging for all transactions
+✅ Session management with Redis
+✅ 128-bit SSL/TLS encryption
 
 ---
 
