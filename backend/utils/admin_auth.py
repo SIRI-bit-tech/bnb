@@ -100,8 +100,11 @@ class AdminPermissionManager:
             "audit_logs:view"
         ],
         "moderator": [
-            "users:read",
-            "transfers:view", "deposits:view", "cards:view", "cards:update", "loans:view",
+            "users:read", "users:update",
+            "transfers:approve", "transfers:decline", "transfers:view",
+            "deposits:approve", "deposits:decline", "deposits:view",
+            "cards:approve", "cards:decline", "cards:view", "cards:update",
+            "loans:approve", "loans:decline", "loans:view",
             "audit_logs:view"
         ],
         "support": [

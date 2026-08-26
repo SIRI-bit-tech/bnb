@@ -48,29 +48,30 @@ function validateFile(file: any) {
   return { valid: true }
 }
 
-async function performUpload(file: File): Promise<string | null> {
+async function performUpload(file: File): Promise<string> {
   const hasKey = Boolean(process.env.UPLOADTHING_TOKEN || process.env.UPLOADTHING_SECRET || process.env.UPLOADTHING_API_KEY)
-  if (!hasKey) {
-    console.error('[Upload] No UploadThing API key found')
-    return null
+  if (hasKey) {
+    try {
+      const { UTApi } = await import('uploadthing/server')
+      const key = process.env.UPLOADTHING_TOKEN || process.env.UPLOADTHING_SECRET || process.env.UPLOADTHING_API_KEY
+      const utapi = new UTApi({ token: key })
+      const result = await utapi.uploadFiles(file)
+      const first = Array.isArray(result) ? result[0] : result
+      const responseData = first?.data || first
+      if (responseData?.url) {
+        return responseData.url
+      }
+    } catch (err: any) {
+      console.error('[Upload] UploadThing fallback to Data URL:', err?.message || err)
+    }
   }
 
-  try {
-    // Direct import instead of dynamic import for better Vercel compatibility
-    const { UTApi } = await import('uploadthing/server')
-    
-    const key = process.env.UPLOADTHING_TOKEN || process.env.UPLOADTHING_SECRET || process.env.UPLOADTHING_API_KEY
-    const utapi = new UTApi({ token: key })
-    
-    const result = await utapi.uploadFiles(file)
-    
-    const first = Array.isArray(result) ? result[0] : result
-    const responseData = first?.data || first
-    return responseData?.url || null
-  } catch (err: any) {
-    console.error('[Upload] UploadThing error:', err?.message || err)
-    return null
-  }
+  // Fallback: Convert image file to base64 Data URL so avatar upload ALWAYS works
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+  const base64 = buffer.toString('base64')
+  const mimeType = file.type || 'image/jpeg'
+  return `data:${mimeType};base64,${base64}`
 }
 
 export async function POST(req: Request | NextRequest) {
@@ -96,10 +97,6 @@ export async function POST(req: Request | NextRequest) {
     }
 
     const url = await performUpload(file as File)
-    if (!url) {
-      return NextResponse.json({ success: false, message: 'Upload failed or service not configured' }, { status: 501 })
-    }
-
     return NextResponse.json({ success: true, data: { url } })
   } catch (e: any) {
     return NextResponse.json({ success: false, message: e?.message || 'Unexpected error' }, { status: 500 })

@@ -49,10 +49,21 @@ export function getUserTimezone(): string {
   }
 }
 
+function parseSafeDate(date: string | Date | null | undefined): Date | null {
+  if (!date) return null
+  if (date instanceof Date) return isNaN(date.getTime()) ? null : date
+  let cleanStr = String(date).trim()
+  if (cleanStr.includes('+00:00Z')) {
+    cleanStr = cleanStr.replace('+00:00Z', 'Z')
+  }
+  const dateObj = new Date(cleanStr)
+  return isNaN(dateObj.getTime()) ? null : dateObj
+}
+
 // Helper to convert any date to user's local timezone string
-// This returns a formatted string directly in user's timezone
-function formatInUserTimezone(date: string | Date, options: Intl.DateTimeFormatOptions): string {
-  const dateObj = date instanceof Date ? date : new Date(date)
+function formatInUserTimezone(date: string | Date | null | undefined, options: Intl.DateTimeFormatOptions): string {
+  const dateObj = parseSafeDate(date)
+  if (!dateObj) return 'N/A'
   const userTimezone = getUserTimezone()
   return dateObj.toLocaleString('en-US', {
     ...options,
@@ -61,18 +72,17 @@ function formatInUserTimezone(date: string | Date, options: Intl.DateTimeFormatO
 }
 
 // Format date - displays in user's browser timezone
-export function formatDate(date: string | Date): string {
-  const formatted = formatInUserTimezone(date, {
+export function formatDate(date: string | Date | null | undefined): string {
+  return formatInUserTimezone(date, {
     year: 'numeric',
     month: 'short',
     day: '2-digit'
   })
-  return formatted
 }
 
 // Format date and time - displays in user's browser timezone
-export function formatDateTime(date: string | Date): string {
-  const formatted = formatInUserTimezone(date, {
+export function formatDateTime(date: string | Date | null | undefined): string {
+  return formatInUserTimezone(date, {
     year: 'numeric',
     month: 'short',
     day: '2-digit',
@@ -80,31 +90,34 @@ export function formatDateTime(date: string | Date): string {
     minute: '2-digit',
     hour12: true
   })
-  return formatted
 }
 
 // Format time - displays in user's browser timezone
-export function formatTime(date: string | Date): string {
-  const formatted = formatInUserTimezone(date, {
+export function formatTime(date: string | Date | null | undefined): string {
+  return formatInUserTimezone(date, {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true
   })
-  return formatted
 }
 
 // Format date only (short format) - displays in user's browser timezone
-export function formatDateShort(date: string | Date): string {
-  const dateObj = date instanceof Date ? date : new Date(date)
+export function formatDateShort(date: string | Date | null | undefined): string {
+  const dateObj = parseSafeDate(date)
+  if (!dateObj) return 'Recently'
   const userTimezone = getUserTimezone()
   return dateObj.toLocaleDateString('en-US', { 
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
     timeZone: userTimezone 
   })
 }
 
 // Format date and time (short format) - displays in user's browser timezone
-export function formatDateTimeShort(date: string | Date): string {
-  const dateObj = date instanceof Date ? date : new Date(date)
+export function formatDateTimeShort(date: string | Date | null | undefined): string {
+  const dateObj = parseSafeDate(date)
+  if (!dateObj) return 'Recently'
   const userTimezone = getUserTimezone()
   return dateObj.toLocaleString('en-US', { 
     dateStyle: 'short', 
@@ -113,9 +126,10 @@ export function formatDateTimeShort(date: string | Date): string {
   })
 }
 
-// Format relative time (e.g., "2 hours ago") - uses US Eastern Time
-export function formatRelativeTime(date: string | Date): string {
-  const dateObj = date instanceof Date ? date : new Date(date)
+// Format relative time (e.g., "2 hours ago")
+export function formatRelativeTime(date: string | Date | null | undefined): string {
+  const dateObj = parseSafeDate(date)
+  if (!dateObj) return 'recently'
   const now = new Date()
   return formatDistance(dateObj, now, { addSuffix: true })
 }

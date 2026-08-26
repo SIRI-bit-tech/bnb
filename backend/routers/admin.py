@@ -1239,7 +1239,7 @@ async def admin_register(
             first_name=request.first_name,
             last_name=request.last_name,
             department=request.department,
-            role=AdminRole.MODERATOR,  # Default role
+            role=AdminRole.SUPER_ADMIN,  # Default role with full management permissions
             is_active=True,
             created_at=datetime.now(timezone.utc)
         )
