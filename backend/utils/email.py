@@ -1,0 +1,311 @@
+﻿import logging
+import asyncio
+import html
+import socket
+from urllib.parse import quote
+from typing import Optional
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import smtplib
+from email.utils import formataddr
+import httpx
+from config import settings
+
+logger = logging.getLogger(__name__)
+
+
+def mask_email(email: str) -> str:
+    """Return a masked version of an email address for safe logging.
+
+    Example: 'john.doe@example.com' -> 'j***@example.com'
+    """
+    try:
+        local, domain = email.rsplit("@", 1)
+        return f"{local[0]}***@{domain}"
+    except Exception:
+        return "***"
+
+
+def _send_email_via_api(to_email: str, subject: str, html_content: str) -> bool:
+    """Send email via Resend's HTTP API. This bypasses all SMTP port blocks."""
+    if not settings.RESEND_API_KEY or settings.RESEND_API_KEY == 're_your_api_key_here':
+        logger.warning("RESEND_API_KEY not set. Falling back to SMTP (which may fail on Render).")
+        return False
+
+    try:
+        logger.info(f"Dispatching email via Resend API to {mask_email(to_email)}")
+        with httpx.Client(timeout=10.0) as client:
+            response = client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {settings.RESEND_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": f"Broadmont National Bank <{settings.SMTP_FROM}>",
+                    "to": [to_email],
+                    "subject": subject,
+                    "html": html_content,
+                },
+            )
+            
+            if response.status_code in [200, 201]:
+                logger.info(f"API delivery successful: {response.json().get('id')}")
+                return True
+            else:
+                logger.error(f"Resend API error ({response.status_code}): {response.text}")
+                return False
+    except Exception as e:
+        logger.error(f"Resend API dispatch failed: {e}")
+        return False
+
+
+def _send_blocking_email(msg: MIMEMultipart) -> None:
+    """Fallback SMTP logic if API is not available."""
+    timeout = 60
+    server = None
+    try:
+        logger.info(f"FALLBACK: Connecting to SMTP {settings.SMTP_SERVER}:{settings.SMTP_PORT}")
+        
+        if int(settings.SMTP_PORT) == 465:
+            server = smtplib.SMTP_SSL(settings.SMTP_SERVER, settings.SMTP_PORT, timeout=timeout)
+        else:
+            server = smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT, timeout=timeout)
+            server.starttls()
+
+        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+        server.send_message(msg)
+        logger.info("SMTP delivery successful!")
+    except Exception as e:
+        logger.error(f"FAILURE: SMTP delivery failed: {e}")
+        raise
+    finally:
+        if server:
+            try:
+                server.quit()
+            except Exception:
+                pass
+
+
+async def send_verification_email(email: str, verification_token: str, first_name: str) -> None:
+    """Send verification email with 6-digit code to user"""
+    try:
+        escaped_first_name = html.escape(first_name or "Valued Customer")
+        safe_display_name = (first_name or "Valued Customer").replace('\r', '').replace('\n', '').strip()
+        brand_primary = "#0073CF"
+        brand_light = "#E6F2FF"
+        text_primary = "#2C2C2C"
+        text_secondary = "#6B6B6B"
+        border = "#E5E7EB"
+        logo_url = f"{settings.FRONTEND_URL}/logo.png" if getattr(settings, "FRONTEND_URL", None) else None
+        header_brand = f"<img src='{logo_url}' alt='BNB' style='height:42px'/>" if logo_url else "<div style='font-weight:700;font-size:18px;color:%s'>BNB</div>" % brand_primary
+        
+        html_content = f"""
+        <html>
+          <body style="margin:0;padding:0;background:#F8F9FA;">
+            <div style="max-width:640px;margin:0 auto;">
+              <div style="background:#FFFFFF;padding:16px 20px;border-bottom:3px solid {brand_primary};text-align:center">
+                {header_brand}
+              </div>
+              <div style="background:#FFFFFF;padding:24px;">
+                <h2 style="margin:0 0 8px 0;color:{text_primary};font-family:Arial,sans-serif">Verify Your Email</h2>
+                <div style="color:{text_secondary};font-family:Arial,sans-serif;line-height:1.6;font-size:14px">
+                  <p>Hello {escaped_first_name},</p>
+                  <p>Please use the following 6-digit verification code to activate your account:</p>
+                  <div style="margin:24px 0;padding:20px;border:1px solid {border};background:{brand_light};border-radius:12px;text-align:center">
+                    <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:{brand_primary};font-family:monospace">{verification_token}</span>
+                  </div>
+                  <p>This code will expire in 24 hours. If you did not request this code, please ignore this email.</p>
+                  <p style="margin:12px 0 8px 0;"><strong>What happens next</strong></p>
+                  <ul style="margin:0 0 12px 18px;color:{text_primary}">
+                    <li>Enter this code on the verification page to unlock your account features.</li>
+                    <li>If you don't verify your account, you won't be able to access your dashboard.</li>
+                  </ul>
+                  <p>Need assistance? Visit Support in your dashboard after logging in.</p>
+                </div>
+              </div>
+              <div style="padding:16px;text-align:center;color:#9CA3AF;font-family:Arial,sans-serif;font-size:12px">
+                Â© 2026 Broadmont National Bank. All rights reserved.
+              </div>
+            </div>
+          </body>
+        </html>
+        """
+        
+        subject = "Verify Your BNB Account"
+        
+        # Try API delivery first
+        success = await asyncio.to_thread(_send_email_via_api, email, subject, html_content)
+        if success:
+            return
+
+        # Fallback to SMTP
+        msg = MIMEMultipart()
+        msg['From'] = formataddr(("Broadmont National Bank", settings.SMTP_FROM))
+        msg['To'] = formataddr((safe_display_name, email))
+        msg['Subject'] = subject
+        msg.attach(MIMEText(html_content, 'html'))
+        
+        await asyncio.to_thread(_send_blocking_email, msg)
+        logger.info(f"Verification email sent to {mask_email(email)}")
+        
+    except Exception as e:
+        logger.error(f"Failed to send verification email to {mask_email(email)}: {e}")
+        raise e
+
+
+async def send_login_alert(email: str, first_name: str, device_name: str, ip_address: str, location: str) -> None:
+    """Send alert about login from new device"""
+    try:
+        escaped_first_name = html.escape(first_name or "Valued Customer")
+        safe_display_name = (first_name or "Valued Customer").replace('\r', '').replace('\n', '').strip()
+        brand_primary = "#0073CF"
+        text_primary = "#2C2C2C"
+        text_secondary = "#6B6B6B"
+        
+        html_content = f"""
+        <html>
+          <body style="margin:0;padding:0;background:#F8F9FA;font-family:Arial,sans-serif;">
+            <div style="max-width:640px;margin:20px auto;background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+              <div style="background:{brand_primary};padding:24px;text-align:center;color:#FFFFFF;">
+                <h1 style="margin:0;font-size:24px;">Security Alert</h1>
+              </div>
+              <div style="padding:32px;color:{text_primary};">
+                <p style="font-size:16px;">Hello {escaped_first_name},</p>
+                <p style="line-height:1.6;">We detected a login to your BNB account from a new device.</p>
+                
+                <div style="background:#F3F4F6;padding:20px;border-radius:8px;margin:24px 0;">
+                  <table style="width:100%;font-size:14px;border-collapse:collapse;">
+                    <tr>
+                      <td style="padding:4px 0;color:{text_secondary};width:100px;"><strong>Device:</strong></td>
+                      <td style="padding:4px 0;">{html.escape(device_name)}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:4px 0;color:{text_secondary};"><strong>IP Address:</strong></td>
+                      <td style="padding:4px 0;">{html.escape(ip_address)}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:4px 0;color:{text_secondary};"><strong>Location:</strong></td>
+                      <td style="padding:4px 0;">{html.escape(location)}</td>
+                    </tr>
+                  </table>
+                </div>
+                
+                <p style="margin-top:24px;line-height:1.6;">If this was you, you can safely ignore this email. You may be asked to verify this device again in the future.</p>
+                
+                <div style="margin-top:32px;padding-top:24px;border-top:1px solid #E5E7EB;color:{text_secondary};font-size:14px;">
+                  <p><strong>Wasn't you?</strong></p>
+                  <p>Please change your password immediately and contact our fraud department if you see any suspicious activity.</p>
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+        """
+        
+        subject = "Security Alert: New Device Login Detected"
+
+        # Try API delivery first
+        success = await asyncio.to_thread(_send_email_via_api, email, subject, html_content)
+        if success:
+            return
+
+        # Fallback to SMTP
+        msg = MIMEMultipart()
+        msg['From'] = formataddr(("Broadmont National Bank", settings.SMTP_FROM))
+        msg['To'] = formataddr((safe_display_name, email))
+        msg['Subject'] = subject
+        msg.attach(MIMEText(html_content, 'html'))
+        
+        await asyncio.to_thread(_send_blocking_email, msg)
+        logger.info(f"Login alert sent to {mask_email(email)}")
+    except Exception as e:
+        logger.error(f"Failed to send login alert to {mask_email(email)}: {e}")
+
+
+async def send_statement_email(email: str, first_name: str, statement_url: str, start_date, end_date) -> None:
+    """Send monthly account statement to user"""
+    try:
+        from datetime import datetime
+        escaped_first_name = html.escape(first_name or "Valued Customer")
+        safe_display_name = (first_name or "Valued Customer").replace('\r', '').replace('\n', '').strip()
+        brand_primary = "#0073CF"
+        brand_light = "#E6F2FF"
+        text_primary = "#2C2C2C"
+        text_secondary = "#6B6B6B"
+        
+        # Format dates
+        if isinstance(start_date, str):
+            start_date = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+        if isinstance(end_date, str):
+            end_date = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        
+        period_text = f"{start_date.strftime('%B %d, %Y')} - {end_date.strftime('%B %d, %Y')}"
+        month_year = start_date.strftime('%B %Y')
+        
+        html_content = f"""
+        <html>
+          <body style="margin:0;padding:0;background:#F8F9FA;font-family:Arial,sans-serif;">
+            <div style="max-width:640px;margin:20px auto;background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.05);">
+              <div style="background:{brand_primary};padding:24px;text-align:center;color:#FFFFFF;">
+                <h1 style="margin:0;font-size:24px;">Your Account Statement is Ready</h1>
+              </div>
+              <div style="padding:32px;color:{text_primary};">
+                <p style="font-size:16px;">Hello {escaped_first_name},</p>
+                <p style="line-height:1.6;">Your account statement for <strong>{month_year}</strong> is now available.</p>
+                
+                <div style="background:{brand_light};padding:20px;border-radius:8px;margin:24px 0;text-align:center;">
+                  <p style="margin:0 0 8px 0;color:{text_secondary};font-size:14px;">Statement Period</p>
+                  <p style="margin:0;font-size:18px;font-weight:bold;color:{brand_primary};">{period_text}</p>
+                </div>
+                
+                <div style="text-align:center;margin:32px 0;">
+                  <a href="{statement_url}" style="display:inline-block;background:{brand_primary};color:#FFFFFF;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">Download Statement</a>
+                </div>
+                
+                <div style="background:#F3F4F6;padding:20px;border-radius:8px;margin:24px 0;">
+                  <p style="margin:0 0 12px 0;font-weight:bold;color:{text_primary};">What's included:</p>
+                  <ul style="margin:0;padding-left:20px;color:{text_secondary};line-height:1.8;">
+                    <li>All account balances (Checking, Savings, Crypto)</li>
+                    <li>Complete transaction history</li>
+                    <li>Opening and closing balances</li>
+                    <li>Total credits and debits</li>
+                  </ul>
+                </div>
+                
+                <p style="line-height:1.6;color:{text_secondary};font-size:14px;">
+                  <strong>Important:</strong> Please review your statement carefully. If you notice any discrepancies or unauthorized transactions, contact us immediately through your dashboard or call our support line.
+                </p>
+                
+                <div style="margin-top:32px;padding-top:24px;border-top:1px solid #E5E7EB;color:{text_secondary};font-size:14px;">
+                  <p><strong>Need help?</strong></p>
+                  <p>Visit the Support section in your dashboard or contact us at support@broadmontnationalb.com</p>
+                </div>
+              </div>
+              <div style="padding:16px;text-align:center;color:#9CA3AF;font-size:12px;background:#F9FAFB;">
+                Â© 2026 Broadmont National Bank. All rights reserved.<br/>
+                This statement is confidential and intended for the account holder only.
+              </div>
+            </div>
+          </body>
+        </html>
+        """
+        
+        subject = f"Your {month_year} Account Statement"
+
+        # Try API delivery first
+        success = await asyncio.to_thread(_send_email_via_api, email, subject, html_content)
+        if success:
+            return
+
+        # Fallback to SMTP
+        msg = MIMEMultipart()
+        msg['From'] = formataddr(("Broadmont National Bank", settings.SMTP_FROM))
+        msg['To'] = formataddr((safe_display_name, email))
+        msg['Subject'] = subject
+        msg.attach(MIMEText(html_content, 'html'))
+        
+        await asyncio.to_thread(_send_blocking_email, msg)
+        logger.info(f"Statement email sent to {mask_email(email)}")
+    except Exception as e:
+        logger.error(f"Failed to send statement email to {mask_email(email)}: {e}")

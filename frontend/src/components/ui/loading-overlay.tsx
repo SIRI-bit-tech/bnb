@@ -1,0 +1,77 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { DotLottieReact } from '@lottiefiles/dotlottie-react'
+import { useLoadingStore } from '@/lib/store'
+
+export function BrandLoader({ size = 160 }: { size?: number }) {
+  const src = process.env.NEXT_PUBLIC_BRAND_LOTTIE_URL || 'https://lottie.host/cc923111-0783-44fa-9f0c-96da4cd1c86d/nhlbhmAdi0.lottie'
+  return (
+    <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <DotLottieReact src={src} loop autoplay style={{ width: '100%', height: '100%' }} />
+    </div>
+  )
+}
+
+export function LoadingOverlay() {
+  const { isLoading, reset } = useLoadingStore()
+  const [visible, setVisible] = useState(false)
+  const startedAtRef = useRef<number | null>(null)
+  const hideTimerRef = useRef<number | null>(null)
+  const MIN_VISIBLE_MS = 1000
+
+  useEffect(() => {
+    try {
+      // Force clean up any stale loading counts on layout shift
+      reset()
+      const el = document.getElementById('app-boot-preloader')
+      if (el) el.remove()
+      document.documentElement.classList.remove('app-preloading')
+    } catch { }
+  }, [])
+
+  useEffect(() => {
+    if (isLoading) {
+      setVisible(true)
+      startedAtRef.current = Date.now()
+    } else {
+      const now = Date.now()
+      const started = startedAtRef.current ?? now
+      const elapsed = now - started
+      const remain = Math.max(0, MIN_VISIBLE_MS - elapsed)
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current)
+      }
+      hideTimerRef.current = window.setTimeout(() => {
+        setVisible(false)
+        startedAtRef.current = null
+        if (hideTimerRef.current) {
+          window.clearTimeout(hideTimerRef.current)
+          hideTimerRef.current = null
+        }
+      }, remain > 0 ? remain : 150)
+    }
+  }, [isLoading])
+
+  if (!visible) return null
+
+  return (
+    <div
+      aria-live="polite"
+      aria-busy={isLoading}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: '#ffffff',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'opacity 150ms ease',
+        opacity: 1
+      }}
+    >
+      <BrandLoader size={160} />
+    </div>
+  )
+}

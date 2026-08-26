@@ -1,0 +1,400 @@
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from models.user import User
+from models.support import LoginHistory
+from models.account import Account, Statement
+from models.transaction import Transaction
+from models.transfer import Transfer
+from models.document import Document
+from models.notification import Notification
+from models.security import TrustedDevice
+from models.loan import Loan
+from models.virtual_card import VirtualCard
+from models.bill_payment import BillPayment
+from models.deposit import Deposit
+from models.user_restriction import UserRestriction, RestrictionType
+from database import get_db
+from datetime import datetime, timezone
+from utils.auth import get_current_user_id
+from utils.cloudinary import CloudinaryManager
+from services.email import email_service
+import logging
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter()
+
+
+@router.post("/restrictions/notify-attempt")
+async def notify_restriction_attempt(
+    background_tasks: BackgroundTasks,
+    current_user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Trigger security email alert when a restricted user attempts a transfer/action"""
+    u_res = await db.execute(select(User).where(User.id == current_user_id))
+    user = u_res.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    r_res = await db.execute(
+        select(UserRestriction).where(
+            UserRestriction.user_id == current_user_id,
+            UserRestriction.restriction_type == RestrictionType.POST_NO_DEBIT,
+            UserRestriction.is_active == True
+        )
+    )
+    restriction = r_res.scalar_one_or_none()
+    msg = restriction.message if restriction else "Your account has been restricted due to a suspicious activity or login attempt from an unrecognized device. Outgoing transfers and payments are disabled until this is resolved."
+    
+    user_name = f"{user.first_name} {user.last_name}".strip()
+    background_tasks.add_task(
+        email_service.send_account_restriction_alert_email,
+        user.email,
+        user_name,
+        msg
+    )
+    
+    return {"success": True, "message": "Restriction alert email queued"}
+
+
+@router.get("/restrictions")
+async def get_my_restrictions(
+    current_user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get current user's restrictions"""
+    result = await db.execute(
+        select(UserRestriction).where(
+            UserRestriction.user_id == current_user_id,
+            UserRestriction.is_active == True
+        )
+    )
+    restrictions = result.scalars().all()
+    
+    return {
+        "success": True,
+        "data": {
+            "restrictions": [
+                {
+                    "id": r.id,
+                    "restriction_type": r.restriction_type.value if isinstance(r.restriction_type, RestrictionType) else r.restriction_type,
+                    "is_active": r.is_active,
+                    "message": r.message,
+                    "created_at": r.created_at.isoformat() + 'Z' if r.created_at else None
+                }
+                for r in restrictions
+            ]
+        },
+        "message": "Restrictions retrieved"
+    }
+
+@router.get("/realtime/token")
+async def get_realtime_token(
+    current_user_id: str = Depends(get_current_user_id),
+):
+    from utils.ably import get_ably_token_request
+    token_request = await get_ably_token_request(current_user_id)
+    if token_request is None:
+        from utils.errors import InternalServerError
+        raise InternalServerError(operation="Real-time token generation")
+    return token_request
+
+
+@router.get("")
+async def get_profile(
+    current_user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get user profile"""
+    result = await db.execute(
+        select(User).where(User.id == current_user_id)
+    )
+    user = result.scalar()
+    
+    if not user:
+        from utils.errors import NotFoundError
+        raise NotFoundError(resource="User")
+    
+    return {
+        "success": True,
+        "data": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone": user.phone,
+            "street_address": user.street_address,
+            "city": user.city,
+            "state": user.state,
+            "postal_code": user.postal_code,
+            "country": user.country,
+            "primary_currency": user.primary_currency,
+            "tier": user.tier,
+            "profile_picture_url": user.profile_picture_url,
+            "email_verified": user.email_verified,
+            "phone_verified": user.phone_verified,
+            "identity_verified": user.identity_verified,
+            "two_factor_enabled": getattr(user, "two_factor_enabled", False),
+            "biometric_enabled": getattr(user, "biometric_enabled", False),
+            "is_restricted": getattr(user, "is_restricted", False) and (user.restricted_until is None or (user.restricted_until.replace(tzinfo=timezone.utc) if user.restricted_until.tzinfo is None else user.restricted_until) > datetime.now(timezone.utc)),
+            "restricted_until": user.restricted_until.isoformat() + 'Z' if getattr(user, "restricted_until", None) else None,
+            "created_at": user.created_at.isoformat() + 'Z' if user.created_at else None,
+            "last_login": user.last_login.isoformat() + 'Z' if user.last_login else None
+        },
+        "message": "Profile retrieved successfully"
+    }
+
+
+@router.put("")
+async def update_profile(
+    payload: dict = Body(...),
+    current_user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update profile"""
+    result = await db.execute(
+        select(User).where(User.id == current_user_id)
+    )
+    user = result.scalar()
+    
+    if not user:
+        from utils.errors import NotFoundError
+        raise NotFoundError(resource="User")
+    
+    first_name = payload.get("first_name")
+    last_name = payload.get("last_name")
+    phone = payload.get("phone")
+    street_address = payload.get("street_address")
+    city = payload.get("city")
+    state = payload.get("state")
+    postal_code = payload.get("postal_code")
+    country = payload.get("country")
+
+    if first_name is not None:
+        user.first_name = first_name
+    if last_name is not None:
+        user.last_name = last_name
+    if phone is not None:
+        user.phone = phone
+    if street_address is not None:
+        user.street_address = street_address
+    if city is not None:
+        user.city = city
+    if state is not None:
+        user.state = state
+    if postal_code is not None:
+        user.postal_code = postal_code
+    if country is not None:
+        user.country = country
+    
+    user.updated_at = datetime.utcnow()
+    db.add(user)
+    await db.commit()
+    
+    return {
+        "success": True,
+        "data": {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone": user.phone,
+            "street_address": user.street_address,
+            "city": user.city,
+            "state": user.state,
+            "postal_code": user.postal_code,
+            "country": user.country
+        },
+        "message": "Profile updated successfully"
+    }
+
+
+@router.post("/avatar/upload-url")
+async def get_avatar_upload_url(
+    current_user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Provide a signed Cloudinary upload config for avatar images"""
+    # Ensure user exists
+    res = await db.execute(select(User).where(User.id == current_user_id))
+    if not res.scalar():
+        from utils.errors import NotFoundError
+        raise NotFoundError(resource="User")
+    cfg = CloudinaryManager.generate_signed_upload_url(folder="avatars", resource_type="image", expire_seconds=900)
+    return {"success": True, "data": cfg}
+
+
+@router.put("/avatar")
+async def set_avatar(
+    payload: dict,
+    current_user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Store avatar URL on the user profile"""
+    image_url = payload.get("image_url")
+    if not image_url:
+        from utils.errors import ValidationError
+        raise ValidationError(message="image_url is required", details={"field": "image_url"})
+    res = await db.execute(select(User).where(User.id == current_user_id))
+    user = res.scalar_one_or_none()
+    if not user:
+        from utils.errors import NotFoundError
+        raise NotFoundError(resource="User")
+    user.profile_picture_url = image_url
+    user.updated_at = datetime.utcnow()
+    db.add(user)
+    await db.commit()
+    return {"success": True, "data": {"profile_picture_url": image_url}, "message": "Avatar updated"}
+
+
+@router.get("/settings")
+async def get_settings(current_user_id: str = Depends(get_current_user_id)):
+    """Get user settings"""
+    return {
+        "success": True,
+        "data": {
+            "theme": "light",
+            "language": "en",
+            "notifications_enabled": True
+        },
+        "message": "Settings retrieved"
+    }
+
+
+@router.put("/settings")
+async def update_settings(
+    current_user_id: str = Depends(get_current_user_id),
+    theme: str = None,
+    language: str = None
+):
+    """Update settings"""
+    return {
+        "success": True,
+        "data": {},
+        "message": "Settings updated successfully"
+    }
+
+
+@router.post("/documents/upload")
+async def upload_document(
+    document_type: str,
+    file_url: str,
+    current_user_id: str = Depends(get_current_user_id)
+):
+    """Upload ID document"""
+    return {
+        "success": True,
+        "data": {"document_id": str(__import__('uuid').uuid4())},
+        "message": "Document uploaded successfully"
+    }
+
+
+@router.get("/documents")
+async def get_documents(
+    current_user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get uploaded documents"""
+    from models.document import Document
+    result = await db.execute(
+        select(Document).where(Document.user_id == current_user_id)
+    )
+    documents = result.scalars().all()
+    
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": d.id,
+                "type": d.type,
+                "filename": d.filename,
+                "status": d.status,
+                "created_at": d.created_at.isoformat() + 'Z'
+            }
+            for d in documents
+        ],
+        "message": "Documents retrieved"
+    }
+
+
+@router.get("/login-history")
+async def get_login_history(
+    current_user_id: str = Depends(get_current_user_id),
+    limit: int = Query(20),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get login history"""
+    result = await db.execute(
+        select(LoginHistory)
+        .where(LoginHistory.user_id == current_user_id)
+        .order_by(LoginHistory.created_at.desc())
+        .limit(limit)
+    )
+    history = result.scalars().all()
+    
+    return {
+        "success": True,
+        "data": [
+            {
+                "ip_address": h.ip_address,
+                "device_name": h.device_name,
+                "device_type": h.device_type,
+                "country": h.country,
+                "city": h.city,
+                "created_at": h.created_at.isoformat() + 'Z'
+            }
+            for h in history
+        ],
+        "message": "Login history retrieved"
+    }
+
+
+@router.delete("")
+async def delete_account(
+    current_user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete user and all associated data permanently"""
+    from sqlalchemy import delete
+    
+    # 1. Verify user exists
+    result = await db.execute(select(User).where(User.id == current_user_id))
+    user = result.scalar()
+    if not user:
+        from utils.errors import NotFoundError
+        raise NotFoundError(resource="User")
+
+    try:
+        # Get all account IDs for this user
+        acc_result = await db.execute(select(Account.id).where(Account.user_id == current_user_id))
+        account_ids = [row[0] for row in acc_result.all()]
+
+        # 2. Delete data linked to accounts (Transactions, Statements, Transfers)
+        if account_ids:
+            await db.execute(delete(Transaction).where(Transaction.account_id.in_(account_ids)))
+            await db.execute(delete(Statement).where(Statement.account_id.in_(account_ids)))
+            await db.execute(delete(Transfer).where((Transfer.from_account_id.in_(account_ids)) | (Transfer.to_account_id.in_(account_ids))))
+            await db.execute(delete(Account).where(Account.id.in_(account_ids)))
+
+        # 3. Delete data linked directly to user_id
+        await db.execute(delete(Loan).where(Loan.user_id == current_user_id))
+        await db.execute(delete(VirtualCard).where(VirtualCard.user_id == current_user_id))
+        await db.execute(delete(BillPayment).where(BillPayment.user_id == current_user_id))
+        await db.execute(delete(Deposit).where(Deposit.user_id == current_user_id))
+        await db.execute(delete(Document).where(Document.user_id == current_user_id))
+        await db.execute(delete(Notification).where(Notification.user_id == current_user_id))
+        await db.execute(delete(TrustedDevice).where(TrustedDevice.user_id == current_user_id))
+        await db.execute(delete(LoginHistory).where(LoginHistory.user_id == current_user_id))
+        
+        # 4. Finally delete the User record
+        await db.execute(delete(User).where(User.id == current_user_id))
+
+        await db.commit()
+        return {"success": True, "message": "Account and all associated data deleted successfully"}
+
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error during account deletion: {e}")
+        from utils.errors import InternalServerError
+        raise InternalServerError(operation="account deletion", original_error=e)
