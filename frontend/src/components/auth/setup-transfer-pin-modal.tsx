@@ -134,13 +134,13 @@ export function SetupTransferPinModal({ open, onOpenChange, onSuccess, email, to
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[380px] border-0 shadow-2xl p-0 overflow-hidden" showCloseButton={false}>
-        <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-600" />
+        <div className="h-1 bg-gradient-to-r from-[#0A2540] to-[#D4AF37]" />
         
         <div className="p-5">
           <DialogHeader className="text-center mb-4">
             <div className="flex justify-center mb-2">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <Lock className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 bg-[#0A2540]/10 rounded-full flex items-center justify-center">
+                <Lock className="w-6 h-6 text-[#0A2540]" />
               </div>
             </div>
             <DialogTitle className="text-xl font-bold text-gray-900">Set Transfer PIN</DialogTitle>
@@ -158,10 +158,8 @@ export function SetupTransferPinModal({ open, onOpenChange, onSuccess, email, to
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-4">
-                <div className="space-y-1.5 text-center">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    New PIN
-                  </label>
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1 text-center">New PIN</label>
                   <div className="flex justify-center">
                     <InputOTP
                       maxLength={4}
@@ -179,10 +177,8 @@ export function SetupTransferPinModal({ open, onOpenChange, onSuccess, email, to
                   </div>
                 </div>
 
-                <div className="space-y-1.5 text-center">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                    Confirm PIN
-                  </label>
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1 text-center">Confirm PIN</label>
                   <div className="flex justify-center">
                     <InputOTP
                       maxLength={4}
@@ -203,7 +199,7 @@ export function SetupTransferPinModal({ open, onOpenChange, onSuccess, email, to
 
               <Button
                 type="submit"
-                className="w-full h-11 text-base font-bold bg-green-600 hover:bg-green-700 shadow-md transition-all active:scale-[0.98]"
+                className="w-full h-11 text-base font-bold bg-[#0A2540] hover:bg-[#061324] text-white shadow-md transition-all active:scale-[0.98]"
                 disabled={loading || success || transferPin.length !== 4 || confirmPin.length !== 4 || transferPin !== confirmPin}
               >
                 {loading ? (

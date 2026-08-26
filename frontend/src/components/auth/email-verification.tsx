@@ -88,7 +88,7 @@ export function EmailVerification() {
         <CardContent className="pt-6">
           <div className="text-center space-y-4">
             <div className="text-5xl">✓</div>
-            <h2 className="text-2xl font-bold text-green-600">Verified!</h2>
+            <h2 className="text-2xl font-bold text-[#0A2540]">Verified!</h2>
             <p className="text-gray-600">
               Your email has been verified successfully. Redirecting to dashboard...
             </p>

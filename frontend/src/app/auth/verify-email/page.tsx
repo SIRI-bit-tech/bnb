@@ -124,22 +124,22 @@ export default function EmailVerificationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4 shadow-lg shadow-green-200">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#0A2540] rounded-full mb-4 shadow-lg">
             <ShieldCheck className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Account Security</h1>
           <p className="text-gray-600 mt-2">
             Verifying access for<br />
-            <span className="font-semibold text-green-730">{email}</span>
+            <span className="font-semibold text-[#0A2540]">{email}</span>
           </p>
         </div>
 
         <Card className="shadow-2xl border-0 overflow-hidden bg-white/90 backdrop-blur-md">
-          <div className="h-2 bg-gradient-to-r from-green-500 to-emerald-600" />
+          <div className="h-2 bg-gradient-to-r from-[#0A2540] to-[#D4AF37]" />
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl font-bold text-gray-800">
               {success ? 'Verified!' : 'Enter Verification Code'}
@@ -154,14 +154,14 @@ export default function EmailVerificationPage() {
           <CardContent className="space-y-6 pt-4 pb-8">
             {success ? (
               <div className="flex flex-col items-center justify-center py-6 animate-in zoom-in duration-500">
-                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle2 className="w-14 h-14 text-green-600" />
+                <div className="w-24 h-24 bg-[#0A2540]/10 rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle2 className="w-14 h-14 text-[#0A2540]" />
                 </div>
                 <p className="text-center text-gray-600 font-medium px-4">
                   We are reviewing your registration. You will be redirected to the approval status page in a moment.
                 </p>
                 <div className="flex justify-center mt-6">
-                  <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
+                  <Loader2 className="w-8 h-8 text-[#0A2540] animate-spin" />
                 </div>
               </div>
             ) : (
@@ -186,7 +186,7 @@ export default function EmailVerificationPage() {
                       value={digit}
                       onChange={e => handleInputChange(i, e.target.value)}
                       onKeyDown={e => handleKeyDown(i, e)}
-                      className="w-10 h-14 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:bg-white focus:outline-none transition-all shadow-inner"
+                      className="w-10 h-14 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-[#0A2540] focus:bg-white focus:outline-none transition-all shadow-inner"
                       disabled={verifying}
                     />
                   ))}
@@ -195,7 +195,7 @@ export default function EmailVerificationPage() {
                 <Button
                   onClick={() => handleVerify()}
                   disabled={verifying || code.some(d => !d)}
-                  className="w-full h-12 text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white rounded-xl shadow-lg shadow-green-100 transition-all active:scale-[0.98]"
+                  className="w-full h-12 text-lg font-bold bg-[#0A2540] hover:bg-[#061324] text-white rounded-xl shadow-lg transition-all active:scale-[0.98]"
                 >
                   {verifying ? (
                     <>
@@ -215,8 +215,8 @@ export default function EmailVerificationPage() {
                     onClick={handleResendCode}
                     disabled={resending || verifying}
                     className={`text-sm font-semibold transition-all flex items-center justify-center mx-auto ${resendStatus === 'success'
-                      ? 'text-green-600 bg-green-50 px-4 py-1 rounded-full'
-                      : 'text-green-600 hover:text-green-700 underline-offset-4 hover:underline'
+                      ? 'text-[#0A2540] bg-[#0A2540]/10 px-4 py-1 rounded-full'
+                      : 'text-[#0A2540] hover:text-[#061324] underline-offset-4 hover:underline'
                       }`}
                   >
                     {resending ? (
@@ -238,7 +238,7 @@ export default function EmailVerificationPage() {
         <div className="flex items-center justify-between mt-8 px-2">
           <Link
             href="/auth/login"
-            className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-green-600 transition-colors"
+            className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-[#0A2540] transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Login

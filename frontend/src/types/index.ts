@@ -522,13 +522,13 @@ export interface QuickActionItem {
 // Color theme variables
 export const colors = {
   // Primary brand colors
-  primary: '#0066CC',
-  primaryDark: '#0052A3',
-  primaryLight: '#E6F2FF',
+  primary: '#0A2540',
+  primaryDark: '#061324',
+  primaryLight: '#F0F4F8',
 
   // Secondary colors
-  secondary: '#2C3E50',
-  accent: '#27AE60',
+  secondary: '#D4AF37',
+  accent: '#D4AF37',
 
   // Neutral colors
   white: '#FFFFFF',

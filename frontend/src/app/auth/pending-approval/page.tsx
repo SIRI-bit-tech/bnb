@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ export default function PendingApprovalPage() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header with Logo */}
         <div className="text-center mb-8">
@@ -22,18 +22,18 @@ export default function PendingApprovalPage() {
               height={64} 
               className="drop-shadow-lg"
             />
-            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">BNB</h1>
+            <h1 className="text-4xl font-bold text-[#0A2540] tracking-tight">BNB</h1>
           </div>
           <p className="text-gray-600 font-medium">Securing Your Account</p>
         </div>
 
         <Card className="shadow-2xl border-0 overflow-hidden bg-white/90 backdrop-blur-md">
-          <div className="h-2 bg-gradient-to-r from-green-500 to-emerald-600" />
+          <div className="h-2 bg-gradient-to-r from-[#0A2540] to-[#D4AF37]" />
           
           <CardHeader className="text-center pb-2 pt-8">
             <div className="flex justify-center mb-4">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center animate-in zoom-in duration-500">
-                <CheckCircle2 className="w-12 h-12 text-green-600" />
+              <div className="w-20 h-20 bg-[#0A2540]/10 rounded-full flex items-center justify-center animate-in zoom-in duration-500">
+                <CheckCircle2 className="w-12 h-12 text-[#0A2540]" />
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-gray-800">Verification Complete!</CardTitle>
@@ -68,7 +68,7 @@ export default function PendingApprovalPage() {
             <div className="pt-4">
               <Button
                 onClick={() => router.push('/auth/login')}
-                className="w-full h-12 text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white rounded-xl shadow-lg shadow-green-100 transition-all active:scale-[0.98]"
+                className="w-full h-12 text-lg font-bold bg-[#0A2540] hover:bg-[#061324] text-white rounded-xl shadow-lg transition-all active:scale-[0.98]"
               >
                 Back to Login
               </Button>
@@ -76,7 +76,7 @@ export default function PendingApprovalPage() {
 
             <div className="text-center">
               <p className="text-sm text-gray-500">
-                Need help? <a href="mailto:support@broadmontnationalb.com" className="text-green-600 hover:underline font-semibold">Contact Support</a>
+                Need help? <a href="mailto:support@broadmontnationalb.com" className="text-[#0A2540] hover:underline font-semibold">Contact Support</a>
               </p>
             </div>
           </CardContent>

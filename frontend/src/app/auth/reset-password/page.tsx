@@ -68,7 +68,7 @@ function ResetPasswordForm() {
     <div className="w-full max-w-md">
       {/* Brand Header */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4 shadow-lg shadow-green-200">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-[#0A2540] rounded-full mb-4 shadow-lg">
           <ShieldCheck className="w-8 h-8 text-white" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900">Security Center</h1>
@@ -76,7 +76,7 @@ function ResetPasswordForm() {
       </div>
 
       <Card className="shadow-2xl border-0 overflow-hidden bg-white/95 backdrop-blur-md">
-        <div className="h-2 bg-gradient-to-r from-green-500 to-emerald-600" />
+        <div className="h-2 bg-gradient-to-r from-[#0A2540] to-[#D4AF37]" />
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-2xl font-bold text-gray-800">
             {success ? 'Password Reset Complete' : 'Set New Password'}
@@ -93,13 +93,13 @@ function ResetPasswordForm() {
         <CardContent className="pt-4 pb-8">
           {success ? (
             <div className="space-y-6 text-center animate-in zoom-in duration-500">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
+              <div className="w-20 h-20 bg-[#0A2540]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-10 h-10 text-[#0A2540]" />
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">
                 Your password has been updated securely. You can now sign in with your new credentials.
               </p>
-              <Button asChild className="w-full bg-green-600 hover:bg-green-700 font-bold py-3">
+              <Button asChild className="w-full bg-[#0A2540] hover:bg-[#061324] font-bold py-3">
                 <Link href="/auth/login">Proceed to Login</Link>
               </Button>
             </div>
@@ -113,7 +113,7 @@ function ResetPasswordForm() {
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-green-600" />
+                  <Lock className="w-4 h-4 text-[#0A2540]" />
                   <span>New Password</span>
                 </label>
                 <div className="relative">
@@ -124,7 +124,7 @@ function ResetPasswordForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="At least 8 characters"
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-green-500 focus:bg-white focus:outline-none transition-all shadow-inner text-gray-900 pr-10"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-[#0A2540] focus:bg-white focus:outline-none transition-all shadow-inner text-gray-900 pr-10"
                   />
                   <button
                     type="button"
@@ -138,7 +138,7 @@ function ResetPasswordForm() {
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-green-600" />
+                  <Lock className="w-4 h-4 text-[#0A2540]" />
                   <span>Confirm New Password</span>
                 </label>
                 <input
@@ -148,13 +148,13 @@ function ResetPasswordForm() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter new password"
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-green-500 focus:bg-white focus:outline-none transition-all shadow-inner text-gray-900"
+                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-[#0A2540] focus:bg-white focus:outline-none transition-all shadow-inner text-gray-900"
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full py-6 text-lg font-bold bg-green-600 hover:bg-green-700 shadow-lg shadow-green-100 transition-all active:scale-[0.98]"
+                className="w-full py-6 text-lg font-bold bg-[#0A2540] hover:bg-[#061324] text-white shadow-lg transition-all active:scale-[0.98]"
                 disabled={loading || !token}
               >
                 {loading ? (
@@ -170,7 +170,7 @@ function ResetPasswordForm() {
               <div className="text-center pt-2">
                 <Link
                   href="/auth/login"
-                  className="inline-flex items-center text-sm font-semibold text-gray-500 hover:text-green-600 transition-colors"
+                  className="inline-flex items-center text-sm font-semibold text-gray-500 hover:text-[#0A2540] transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4 mr-1" />
                   Back to Sign In

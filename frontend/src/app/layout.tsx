@@ -1,4 +1,4 @@
-﻿import React from "react"
+import React from "react"
 import type { Metadata, Viewport } from 'next'
 import '../styles/globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -40,7 +40,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#0073CF',
+  themeColor: '#0A2540',
 }
 
 export default function RootLayout({
@@ -56,7 +56,7 @@ export default function RootLayout({
         <meta name="color-scheme" content="light" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="msapplication-config" content="/none" />
-        <meta name="msapplication-TileColor" content="#0073CF" />
+        <meta name="msapplication-TileColor" content="#0A2540" />
         <meta name="msapplication-tap-highlight" content="no" />
         
         {/* Explicitly disable PWA features on all devices */}

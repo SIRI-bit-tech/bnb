@@ -26,7 +26,7 @@ export default function LoansPage() {
                             From personal dreams to business expansion, our loans are designed to get you there faster with competitive rates.
                         </p>
                         <div className="flex flex-wrap gap-4">
-                            <Link href="/auth/register" className="bg-[#00AEEF] hover:bg-[#0096CC] text-white px-10 py-4 rounded-full font-bold transition-all shadow-lg shadow-sky-500/20">
+                            <Link href="/auth/register" className="bg-primary hover:opacity-90 text-white px-10 py-4 rounded-full font-bold transition-all shadow-lg">
                                 Apply Online
                             </Link>
                             <button className="bg-white/10 hover:bg-white/20 border border-white/30 text-white px-10 py-4 rounded-full font-bold transition-all backdrop-blur-sm">
@@ -40,14 +40,14 @@ export default function LoansPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
                         <Card className="p-10 border-none shadow-sm hover:shadow-xl transition-all">
                             <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-8">
-                                <Calculator className="text-[#00AEEF] w-8 h-8" />
+                                <Calculator className="text-primary w-8 h-8" />
                             </div>
                             <h2 className="text-2xl font-bold mb-4">Personal Loans</h2>
                             <p className="text-gray-600 mb-8 font-medium">Get up to $50,000 for your personal needs with instant approval and flexible tenure.</p>
                             <div className="space-y-4 border-t pt-8">
                                 <div className="flex justify-between items-center text-sm font-bold">
                                     <span className="text-gray-400">Interest Rates</span>
-                                    <span className="text-[#00AEEF]">From 3.88% p.a.</span>
+                                    <span className="text-primary">From 3.88% p.a.</span>
                                 </div>
                                 <div className="flex justify-between items-center text-sm font-bold">
                                     <span className="text-gray-400">Processing Time</span>

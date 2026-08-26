@@ -104,8 +104,8 @@ export function BiometricSetupPrompt({ isOpen, onClose, onDone }: BiometricSetup
         {success ? (
           /* ── Success State ── */
           <div className="flex flex-col items-center text-center px-8 py-10">
-            <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-4 animate-in zoom-in-50 duration-300">
-              <ShieldCheck className="w-10 h-10 text-green-500" />
+            <div className="w-20 h-20 rounded-full bg-[#0A2540]/10 flex items-center justify-center mb-4 animate-in zoom-in-50 duration-300">
+              <ShieldCheck className="w-10 h-10 text-[#0A2540]" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">You're all set!</h3>
             <p className="text-sm text-gray-500">
