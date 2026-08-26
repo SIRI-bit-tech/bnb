@@ -1,8 +1,6 @@
 'use client'
 
 import { getAdminId } from '@/lib/auth-helpers'
-﻿'use client'
-
 import { useState, useEffect } from 'react'
 import {
   Dialog,

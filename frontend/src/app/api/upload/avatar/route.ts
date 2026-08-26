@@ -52,7 +52,8 @@ async function performUpload(file: File): Promise<string> {
   const hasKey = Boolean(process.env.UPLOADTHING_TOKEN || process.env.UPLOADTHING_SECRET || process.env.UPLOADTHING_API_KEY)
   if (hasKey) {
     try {
-      const { UTApi } = await import('uploadthing/server')
+      const modName = 'uploadthing/server'
+      const { UTApi } = await eval(`import("${modName}")`)
       const key = process.env.UPLOADTHING_TOKEN || process.env.UPLOADTHING_SECRET || process.env.UPLOADTHING_API_KEY
       const utapi = new UTApi({ token: key })
       const result = await utapi.uploadFiles(file)
