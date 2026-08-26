@@ -35,6 +35,14 @@ def get_client_ip(request: Request) -> Optional[str]:
     """
     headers = request.headers
 
+    # Priority 0: Explicit Client IP sent directly from browser device
+    for client_key in ("x-client-ip", "X-Client-IP", "x-user-ip", "X-User-IP"):
+        clip = headers.get(client_key)
+        if clip:
+            ip = clip.split(",")[0].strip()
+            if ip and not _is_private(ip):
+                return ip
+
     # Priority 1: Cloudflare header — set only by CF, hardest to spoof
     for cf_key in ("cf-connecting-ip", "CF-Connecting-IP"):
         cf = headers.get(cf_key)
@@ -69,52 +77,34 @@ def get_client_ip(request: Request) -> Optional[str]:
     return None
 
 
-def geolocate_ip(ip: Optional[str], request: Optional[Request] = None) -> Dict[str, Any]:
-    """Geolocate an IP using proxy headers, ip-api.com, or public egress fallback."""
-    # Step 1: Check Vercel or Cloudflare geo headers if request object is passed
-    if request:
-        headers = request.headers
-        city = headers.get("x-vercel-ip-city") or headers.get("cf-ipcity")
-        country = headers.get("x-vercel-ip-country") or headers.get("cf-ipcountry")
-        if city or country:
-            return {
-                "city": city or "United States",
-                "country": country or "United States",
-                "timezone": "UTC"
-            }
-
-    # Step 2: Query ip-api for specific IP if public
-    if ip and not _is_private(ip):
+def geolocate_ip(ip: Optional[str]) -> Optional[Dict[str, Any]]:
+    """Geolocate an IP address dynamically using ip-api.com without static hardcodes."""
+    if not ip or _is_private(ip):
+        # Query public IP egress dynamically for local/private network environments
         try:
-            url = f"https://ip-api.com/json/{ip}?fields=status,country,city,timezone,query"
+            url = "https://ip-api.com/json/?fields=status,country,city,timezone"
             with urllib.request.urlopen(url, timeout=5) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
-                if data.get("status") == "success" and (data.get("city") or data.get("country")):
+                if data.get("status") == "success":
                     return {
-                        "country": data.get("country") or "United States",
-                        "city": data.get("city") or "New York",
-                        "timezone": data.get("timezone") or "UTC",
+                        "country": data.get("country"),
+                        "city": data.get("city"),
+                        "timezone": data.get("timezone"),
                     }
         except Exception:
-            pass
+            return None
+        return None
 
-    # Step 3: Fallback to querying server egress public IP (for localhost / private networks)
     try:
-        url = "https://ip-api.com/json/?fields=status,country,city,timezone"
+        url = f"https://ip-api.com/json/{ip}?fields=status,country,city,timezone"
         with urllib.request.urlopen(url, timeout=5) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             if data.get("status") == "success":
                 return {
-                    "country": data.get("country") or "United States",
-                    "city": data.get("city") or "New York",
-                    "timezone": data.get("timezone") or "UTC",
+                    "country": data.get("country"),
+                    "city": data.get("city"),
+                    "timezone": data.get("timezone"),
                 }
     except Exception:
         pass
-
-    # Step 4: Final sensible default instead of "unknown, unknown"
-    return {
-        "city": "New York",
-        "country": "United States",
-        "timezone": "America/New_York"
-    }
+    return None

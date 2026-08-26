@@ -7,11 +7,38 @@ interface ApiClientConfig {
   timeout?: number
 }
 
+let cachedClientIp: string | null = null
+
+export async function resolveClientIp(): Promise<string | null> {
+  if (cachedClientIp) return cachedClientIp
+  if (typeof window === 'undefined') return null
+  try {
+    const saved = sessionStorage.getItem('user_real_ip')
+    if (saved) {
+      cachedClientIp = saved
+      return saved
+    }
+    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) })
+    if (res.ok) {
+      const data = await res.json()
+      if (data?.ip) {
+        cachedClientIp = data.ip
+        sessionStorage.setItem('user_real_ip', data.ip)
+        return data.ip
+      }
+    }
+  } catch {}
+  return null
+}
+
 class ApiClient {
   private client: AxiosInstance
   private inMemoryToken: string | null = null
 
   constructor(config: ApiClientConfig) {
+    if (typeof window !== 'undefined') {
+      resolveClientIp()
+    }
     this.client = axios.create({
       baseURL: config.baseURL,
       timeout: config.timeout || 60000,
@@ -27,7 +54,6 @@ class ApiClient {
     const performRefresh = async (): Promise<string> => {
       if (refreshPromise) return refreshPromise
       isRefreshing = true
-      // No need to pass refresh_token in body anymore, backend reads it from httpOnly cookie
       refreshPromise = axios
         .post(`${API_BASE_URL}/api/v1/auth/refresh`, {}, { withCredentials: true })
         .then((res) => {
@@ -45,7 +71,7 @@ class ApiClient {
       return refreshPromise
     }
 
-    // Request interceptor to attach token from in-memory variable
+    // Request interceptor to attach token and client IP header
     this.client.interceptors.request.use((cfg) => {
       try {
         const showLoaderHeader =
@@ -56,6 +82,15 @@ class ApiClient {
             useLoadingStore.getState().show()
               ; (cfg as any)._showLoader = true
           } catch { }
+        }
+
+        // Attach Real Client IP header from browser
+        if (typeof window !== 'undefined') {
+          const realIp = sessionStorage.getItem('user_real_ip') || cachedClientIp
+          if (realIp) {
+            cfg.headers = cfg.headers || {}
+            ;(cfg.headers as any)['X-Client-IP'] = realIp
+          }
         }
 
         // Check if this is an admin request and use admin token

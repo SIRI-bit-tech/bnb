@@ -55,7 +55,7 @@ export function ActivityList({ items }: { items: Activity[] }) {
                           if (c && co) return `${c}, ${co}`
                           if (c) return c
                           if (co) return co
-                          return 'United States'
+                          return 'Location Unavailable'
                         })()}
                       </span>
                     </div>
